@@ -84,7 +84,7 @@ def is_water(atom: Dict[str, Any]) -> bool:
     return atom["resname"] in WATERS
 
 
-def is_solvent_or_het(atom: Dict[str, Any]) -> bool:
+def is_other(atom: Dict[str, Any]) -> bool:
     """Returns True if atom belongs to any HETATM (solvent/ligand/etc)."""
     return atom["record"] == "HETATM"
 
@@ -125,7 +125,7 @@ def find_neighbors(
             continue
 
         # Only sidechains, waters, or HETATM/solvent-like atoms are considered
-        if not (is_sidechain(atom) or is_water(atom) or is_solvent_or_het(atom)):
+        if not (is_sidechain(atom) or is_water(atom) or is_other(atom)):
             continue
 
         key = residue_key(atom)
@@ -149,7 +149,7 @@ def find_neighbors(
     for atom in atoms:
         if atom["resseq"] in residue_numbers:
             continue
-        if not (is_sidechain(atom) or is_water(atom) or is_solvent_or_het(atom)):
+        if not (is_sidechain(atom) or is_water(atom) or is_other(atom)):
             continue
         if residue_key(atom) in neighbor_residues:
             neighbor_indices.add(atom["index"])
