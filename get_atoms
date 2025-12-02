@@ -227,13 +227,13 @@ def main():
         return
 
     residue_numbers = set(args.residues)
-    neighbor_indices_0based = find_neighbors(atoms, residue_numbers, args.distance)
+    neighbor_indices_0 = find_neighbors(atoms, residue_numbers, args.distance)
 
     # Convert to requested indexing scheme
     if args.zero:
-        output_indices = neighbor_indices_0based
+        output_indices = neighbor_indices_0
     else:
-        output_indices = [i + 1 for i in neighbor_indices_0based]
+        output_indices = [i + 1 for i in neighbor_indices_0]
 
     formatted = squeeze_list(output_indices)
     print(formatted)
