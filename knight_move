@@ -20,9 +20,9 @@ KNIGHT_MOVES = [
 ]
 
 
-# ---------- coordinate helpers ----------
+# Let's handle the coordinates
 
-def square_to_coords(square: str, size: int) -> Tuple[int, int]:
+def chess2xy(square: str, size: int) -> Tuple[int, int]:
     """
     Converts chess notation (e.g., 'a1') to (row, col).
     row = rank - 1, col = file - 'a'
@@ -46,7 +46,7 @@ def square_to_coords(square: str, size: int) -> Tuple[int, int]:
     return row, col
 
 
-def coords_to_square(row: int, col: int) -> str:
+def xy2chess(row: int, col: int) -> str:
     """Convert 0-based (row, col) back to the chess notation (e.g., 'b2')."""
     file_char = chr(ord('a') + col)
     rank_str = str(row + 1)
@@ -99,9 +99,9 @@ def knight_shortest_path(
     return None
 
 
-# ---------- pretty printing ----------
+# Let's print the board!
 
-def print_board_with_path(path: List[Tuple[int, int]], size: int) -> None:
+def path_on_board(path: List[Tuple[int, int]], size: int) -> None:
     """
     Print an ASCII board with:
         S = start
@@ -151,8 +151,8 @@ def main():
     size = args.size
 
     try:
-        start_coords = square_to_coords(args.start, size)
-        end_coords = square_to_coords(args.end, size)
+        start_coords = chess2xy(args.start, size)
+        end_coords = chess2xy(args.end, size)
     except ValueError as e:
         print(e)
         return
@@ -163,7 +163,7 @@ def main():
         return
 
     steps = len(path) - 1
-    path_squares = [coords_to_square(r, c) for (r, c) in path]
+    path_squares = [xy2chess(r, c) for (r, c) in path]
 
     print(f"Board size: {size}x{size}")
     print(f"From {args.start} to {args.end}:")
@@ -171,7 +171,7 @@ def main():
     print("  One shortest path:")
     print("   " + " -> ".join(path_squares))
 
-    print_board_with_path(path, size)
+    path_on_board(path, size)
 
 
 if __name__ == "__main__":
