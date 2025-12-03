@@ -1,0 +1,179 @@
+#!/usr/bin/env python3
+"""
+Computes the shortest knight path between two squares on a chessboard.
+
+Usage:
+    python knight_path.py a1 h8
+    python knight_path.py a1 h8 --size 10
+"""
+
+import argparse
+from collections import deque
+from typing import Tuple, List, Dict, Optional
+
+# All possible knight moves: (delta_row, delta_col)
+KNIGHT_MOVES = [
+    (-2, -1), (-2, 1),
+    (-1, -2), (-1, 2),
+    (1, -2),  (1, 2),
+    (2, -1),  (2, 1),
+]
+
+
+# ---------- coordinate helpers ----------
+
+def square_to_coords(square: str, size: int) -> Tuple[int, int]:
+    """
+    Converts chess notation (e.g., 'a1') to (row, col).
+    row = rank - 1, col = file - 'a'
+    """
+    s = square.strip().lower()
+    if len(s) < 2:
+        raise ValueError(f"Invalid square, fuck off! {square}")
+
+    file_char = s[0]
+    rank_str = s[1:]
+
+    if not file_char.isalpha() or not rank_str.isdigit():
+        raise ValueError(f"Invalid square, fuck off! {square}")
+
+    col = ord(file_char) - ord('a')
+    row = int(rank_str) - 1
+
+    if not (0 <= col < size and 0 <= row < size):
+        raise ValueError(f"Square {square} is outside a {size}x{size} board! Fuck off!")
+
+    return row, col
+
+
+def coords_to_square(row: int, col: int) -> str:
+    """Convert 0-based (row, col) back to the chess notation (e.g., 'b2')."""
+    file_char = chr(ord('a') + col)
+    rank_str = str(row + 1)
+    return f"{file_char}{rank_str}"
+
+
+def in_bounds(row: int, col: int, size: int) -> bool:
+    return 0 <= row < size and 0 <= col < size
+
+
+def knight_shortest_path(
+    start: Tuple[int, int],
+    end: Tuple[int, int],
+    size: int,
+) -> Optional[List[Tuple[int, int]]]:
+    """
+    Breadth-first search to find a shortest knight path from start to end.
+    Returns a list of (row, col) from start to end, or None if unreachable.
+    """
+    if start == end:
+        return [start]
+
+    queue = deque([start])
+    visited = {start}
+    parent: Dict[Tuple[int, int], Tuple[int, int]] = {}
+
+    while queue:
+        r, c = queue.popleft()
+        for dr, dc in KNIGHT_MOVES:
+            nr, nc = r + dr, c + dc
+            if not in_bounds(nr, nc, size):
+                continue
+            nxt = (nr, nc)
+            if nxt in visited:
+                continue
+
+            visited.add(nxt)
+            parent[nxt] = (r, c)
+
+            if nxt == end:
+                # Reconstruct path
+                path = [end]
+                while path[-1] != start:
+                    path.append(parent[path[-1]])
+                path.reverse()
+                return path
+
+            queue.append(nxt)
+
+    return None
+
+
+# ---------- pretty printing ----------
+
+def print_board_with_path(path: List[Tuple[int, int]], size: int) -> None:
+    """
+    Print an ASCII board with:
+        S = start
+        E = end
+        numbers = step index (0,1,2,...)
+        . = empty
+    """
+    board = [["." for _ in range(size)] for _ in range(size)]
+
+    start = path[0]
+    end = path[-1]
+
+    # Mark each step index on the board
+    for step_idx, (r, c) in enumerate(path):
+        board[r][c] = str(step_idx)
+
+    # Overwrite start/end markers for clarity
+    sr, sc = start
+    er, ec = end
+    board[sr][sc] = "S"
+    board[er][ec] = "E"
+
+    print("\nBoard (S=start, E=end, numbers=step index):")
+    for row in range(size - 1, -1, -1):  # print top rank first
+        line = f"{row + 1:>2} "  # rank label
+        line += " ".join(f"{board[row][col]:>2}" for col in range(size))
+        print(line)
+
+    files_line = "   " + " ".join(f"{chr(ord('a') + c):>2}" for c in range(size))
+    print(files_line)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Analyze the knight's path/number of steps between two squares."
+    )
+    parser.add_argument("start", help="Start square (e.g. a1)")
+    parser.add_argument("end", help="End square (e.g. h8)")
+    parser.add_argument(
+        "-s", "--size",
+        type=int,
+        default=8,
+        help="Board size N (creates an NxN board, default 8).",
+    )
+
+    args = parser.parse_args()
+    size = args.size
+
+    try:
+        start_coords = square_to_coords(args.start, size)
+        end_coords = square_to_coords(args.end, size)
+    except ValueError as e:
+        print(e)
+        return
+
+    path = knight_shortest_path(start_coords, end_coords, size)
+    if path is None:
+        print(f"No path found from {args.start} to {args.end} on a {size}x{size} board.")
+        return
+
+    steps = len(path) - 1
+    path_squares = [coords_to_square(r, c) for (r, c) in path]
+
+    print(f"Board size: {size}x{size}")
+    print(f"From {args.start} to {args.end}:")
+    print(f"  Minimum knight moves: {steps}")
+    print("  One shortest path:")
+    print("   " + " -> ".join(path_squares))
+
+    print_board_with_path(path, size)
+
+
+if __name__ == "__main__":
+    main()
+
