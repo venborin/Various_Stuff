@@ -6,4 +6,5 @@ Various useful stuff
    Usefull for MM, QM, an QM/MM otimization your stuff within the relaxed binding pocket/bulk of solvent.
    ./get_atoms -h for help
 2. knight_moves
+   
    Have you ever wondered how many moves it would take for knight to move from square A to square B on a chessboard? Well, this program is for you.
