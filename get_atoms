@@ -5,19 +5,11 @@ from typing import List, Dict, Any, Set, Tuple
 # Backbone atom names; anything else in a standard amino acid is considered sidechain
 BB_NAMES = {"N", "CA", "C", "O", "OXT", "OT1", "OT2", "H", "HA"}
 # GLY is not in the list. It doesn't have any sidechain, so fuck it!
-AA_NAMES = {
-    "ALA", "ARG", "ASN", "ASP", "CYS", 
-    "GLN", "GLU", "HIS", "ILE", "LEU",
-    "LYS", "MET", "PHE", "PRO", "SER",
-    "THR", "TRP", "TYR", "VAL", "ASH",
-    "GLH", "HIE", "HSE", "HIP", "HSP",
-    "HID", "HSD", "LYN", "CYX", "CYM"
-}
+AA_NAMES = { "ALA", "ARG", "ASN", "ASP", "CYS", "GLN", "GLU", "HIS", "ILE", "LEU", "LYS", "MET", "PHE", "PRO", "SER", "THR", "TRP", "TYR", "VAL", "ASH", "GLH", "HIE", "HSE", "HIP", "HSP", "HID", "HSD", "LYN", "CYX", "CYM" }
 WATERS = {"HOH", "WAT", "H2O", "DOD"}
 
 
-def parse_pdb(path: str) -> List[Dict[str, Any]]:
-    """Put all ATOM/HETATM records from the PDB into a list of atom dicts."""
+def readPDB(path: str) -> List[Dict[str, Any]]:
     atoms: List[Dict[str, Any]] = []
     with open(path) as pdb:
         for line in pdb:
@@ -46,7 +38,6 @@ def parse_pdb(path: str) -> List[Dict[str, Any]]:
             except ValueError:
                 continue
 
-            # If altlocs are present, keep the first conformer
             if altloc not in ("", " ", "A"):
                 continue
 
@@ -62,14 +53,13 @@ def parse_pdb(path: str) -> List[Dict[str, Any]]:
                     "x": x,
                     "y": y,
                     "z": z,
-                    "record": record,      # 'ATOM' or 'HETATM'
+                    "record": record,      
                 }
             )
     return atoms
 
 
 def is_sidechain(atom: Dict[str, Any]) -> bool:
-    """Returns True if atom belongs to a protein sidechain."""
     if atom["record"] != "ATOM":
         return False
     if atom["resname"] not in AA_NAMES:
@@ -80,17 +70,14 @@ def is_sidechain(atom: Dict[str, Any]) -> bool:
 
 
 def is_water(atom: Dict[str, Any]) -> bool:
-    """Returns True if atom belongs to a water molecule."""
     return atom["resname"] in WATERS
 
 
 def is_other(atom: Dict[str, Any]) -> bool:
-    """Returns True if atom belongs to any HETATM (solvent/ligand/etc)."""
     return atom["record"] == "HETATM"
 
 
 def residue_key(atom: Dict[str, Any]) -> Tuple[str, int, str, str]:
-    """Unique-ish key for a residue within this PDB."""
     return (atom["chain"], atom["resseq"], atom["icode"], atom["resname"])
 
 
@@ -99,14 +86,6 @@ def find_neighbors(
     residue_numbers: Set[int],
     cutoff: float,
 ) -> List[int]:
-    """
-    Return indices (starting from "0") of sidechain/water/solvent atoms belonging to any
-    residue for which at least one such atom is within cutoff (Å) of any atom
-    of the specified residues.
-    """
-    cutoff2 = cutoff**2
-
-    # central atoms: any atom belonging to selected residue numbers
     central_indices = [
         a["index"] for a in atoms if a["resseq"] in residue_numbers
     ]
@@ -116,15 +95,12 @@ def find_neighbors(
     coords = [(a["x"], a["y"], a["z"]) for a in atoms]
     central_coords = [coords[i] for i in central_indices]
 
-    # First, find which *residues* are close (via any candidate atom)
     neighbor_residues: Set[Tuple[str, int, str, str]] = set()
 
     for atom in atoms:
-        # skip atoms from the selected residues themselves
         if atom["resseq"] in residue_numbers:
             continue
 
-        # Only sidechains, waters, or HETATM/solvent-like atoms are considered
         if not (is_sidechain(atom) or is_water(atom) or is_other(atom)):
             continue
 
@@ -135,16 +111,14 @@ def find_neighbors(
 
         x, y, z = coords[atom["index"]]
 
-        # distance to any central atom
         for (cx, cy, cz) in central_coords:
             dx = x - cx
             dy = y - cy
             dz = z - cz
-            if dx * dx + dy * dy + dz * dz <= cutoff2:
+            if dx * dx + dy * dy + dz * dz <= cutoff**2:
                 neighbor_residues.add(key)
                 break
 
-    # Now collect *all* candidate atoms from those neighbor residues
     neighbor_indices: Set[int] = set()
     for atom in atoms:
         if atom["resseq"] in residue_numbers:
@@ -158,10 +132,6 @@ def find_neighbors(
 
 
 def squeeze_list(indices: List[int]) -> str:
-    """
-    Formats a sorted list of indices (int) as a comma/dash-separated ranges,
-    [1,2,3,5,7,8,9] -> "1-3,5,7-9".
-    """
     if not indices:
         return ""
 
@@ -191,8 +161,7 @@ def squeeze_list(indices: List[int]) -> str:
 def main():
     parser = argparse.ArgumentParser(
         description=(
-            "Prints atom indices of sidechain/waters/ligands that have at least one atom"
-            "within a given distance of specified residue(s) in a PDB file. "
+            "Prints atom indices of sidechain/waters/ligands that have at least one atom within a given distance of specified residue(s) in a PDB file. "
         )
     )
     parser.add_argument(
@@ -222,7 +191,7 @@ def main():
 
     args = parser.parse_args()
 
-    atoms = parse_pdb(args.pdb)
+    atoms = readPDB(args.pdb)
     if not atoms:
         return
 
