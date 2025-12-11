@@ -41,21 +41,7 @@ def readPDB(path: str) -> List[Dict[str, Any]]:
             if altloc not in ("", " ", "A"):
                 continue
 
-            atoms.append(
-                {
-                    "index": len(atoms),   # Starts with "0" !!!111
-                    "serial": serial,      # PDB atom serial number
-                    "name": name,
-                    "resname": resname,
-                    "chain": chain,
-                    "resseq": resseq,
-                    "icode": icode,
-                    "x": x,
-                    "y": y,
-                    "z": z,
-                    "record": record,      
-                }
-            )
+            atoms.append({"index": len(atoms),"serial": serial,"name": name, "resname": resname, "chain": chain,"resseq": resseq,"icode": icode,"x": x,"y": y,"z": z,"record": record})
     return atoms
 
 
@@ -198,7 +184,6 @@ def main():
     residue_numbers = set(args.residues)
     neighbor_indices_0 = find_neighbors(atoms, residue_numbers, args.distance)
 
-    # Convert to requested indexing scheme
     if args.zero:
         output_indices = neighbor_indices_0
     else:
