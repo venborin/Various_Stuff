@@ -100,11 +100,13 @@ int main(int argc,char** argv)
 {
 //	Defaults:
 	std::string fname="data.dat";
+	std::string output="spectrum.dat";
 	std::string units="eV";
 	float fwhm = 0.15;
 	float mine = 0.01;
 	float maxe = 5.00;
-	
+	bool plot = false;
+
 	for (int i = 1; i < argc; i++)
 	{
 		std::string str = argv[i];
@@ -115,6 +117,7 @@ int main(int argc,char** argv)
 			printf("\t-u/--units:\t units for the broadened spectrum: eV (default), cm, or nm\n");
 			printf("\t-f/--fwhm:\t the value for the FWHM. Default is 0.15 eV\n");
 			printf("\t--min and --max: min and max values on the energy scale (in eV). Defaults are 0.01 and 5.00\n");
+			printf("\t-p/--plot:\t plot the spectrum using gnuplot\n");
 			std::exit(0);
 		}
 		if (str=="-d" || str=="--data")
@@ -137,6 +140,10 @@ int main(int argc,char** argv)
 		{
 			maxe=atof(argv[++i]);
 		}
+		else if (str=="-p" || str == "--plot")
+		{
+			plot=true;
+		}	
 		else
 		{
 			printf("Unknown argument %s!\n",str);
@@ -158,28 +165,54 @@ int main(int argc,char** argv)
 		mine=0.01;
 	}
 	std::vector<std::vector<float> > spectrum = convolute(mine,maxe,En,Fo,sigma);
+	std::ofstream fout(output);
 
 	if (units=="ev")
 	{
+		fout << "# VET,eV\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
-			printf("%5.2f\t%10.1f\n",spectrum[i][0],spectrum[i][1]);
+			fout << std::scientific << spectrum[i][0] << "\t" << spectrum[i][1] << std::endl;
 		}
 	}
 	else if (units=="cm")
 	{
+		fout << "# VET,cm^-1\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
-			printf("%6d\t%10.1f\n",(int)spectrum[i][0]*8066,spectrum[i][1]);
+			fout << std::scientific << spectrum[i][0]*8066 << "\t" << spectrum[i][1] << std::endl;
 		}
 	}
 	else if (units=="nm")
 	{
+		fout << "# VET,nm\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
-			printf("%5.1f\t%10.1f\n",(1240.0/spectrum[i][0]),spectrum[i][1]);
+			fout << std::scientific << 1240/spectrum[i][0] << "\t" << spectrum[i][1] << std::endl;
 		}
 	}
+	if (plot) {
+		const std::string gp_path = "plot_spectrum.gp";
+		std::ofstream gp(gp_path);
+        if (!gp) {
+            std::cerr << "Warning: cannot write gnuplot script.\n";
+            return 0;
+        }
+	gp << "set title \"Broadened Spectrum (Gaussian FWHM = 0.15 eV)\"\n"
+	   << "set xlabel \"Wavenumber (cm^{-1})\"\n"
+	   << "set ylabel \"Extinction Coefficient epsilon (M^{-1} cm^{-1})\"\n"
+	   << "set grid\n"
+	   << "plot '" << output << "' using 1:2 with lines title 'epsilon(nu)'\n"
+	   << "pause -1 \"Press Enter to close\"\n";
+
+	gp.close();
+        const std::string cmd = "gnuplot " + gp_path;
+        int ret = std::system(cmd.c_str());
+        if (ret != 0) {
+            std::cerr << "Warning: gnuplot command failed. You can plot manually with:\n"
+                      << "  gnuplot -e \"plot '" << output << "' u 1:2 w l\"\n";
+        }
+    }
 
 
 }
