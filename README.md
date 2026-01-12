@@ -6,6 +6,12 @@ Various useful stuff
    Usefull for MM, QM, an QM/MM otimization your stuff within the relaxed binding pocket/bulk of solvent.
    
    ./get_atoms -h for help
-3. knight_move
+2. knight_move
    
    Have you ever wondered how many moves it would take for knight to move from square A to square B on a chessboard? Well, this program is for you.
+
+3. convolute.cpp
+
+   performes gaussian broadening of the calculated UV-Vis spectrum.
+   Building: g++ convolute.cpp -o convolute -std=c++17
+   ./convolute -h for help
