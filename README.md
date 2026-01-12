@@ -12,6 +12,6 @@ Various useful stuff
 
 3. convolute.cpp
 
-   performes gaussian broadening of the calculated UV-Vis spectrum.
+   performs gaussian broadening of the calculated UV-Vis spectrum.
    Building: g++ convolute.cpp -o convolute -std=c++17
    ./convolute -h for help
