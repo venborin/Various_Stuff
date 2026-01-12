@@ -102,6 +102,7 @@ int main(int argc,char** argv)
 	std::string fname="data.dat";
 	std::string output="spectrum.dat";
 	std::string units="eV";
+	std::string xlabel;
 	float fwhm = 0.15;
 	float mine = 0.01;
 	float maxe = 5.00;
@@ -169,6 +170,7 @@ int main(int argc,char** argv)
 
 	if (units=="ev")
 	{
+		xlabel="Transition Energy, eV";
 		fout << "# VET,eV\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
@@ -178,6 +180,7 @@ int main(int argc,char** argv)
 	}
 	else if (units=="cm")
 	{
+		xlabel="Wavenumber (cm^{-1})";
 		fout << "# VET,cm^-1\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
@@ -187,6 +190,7 @@ int main(int argc,char** argv)
 	}
 	else if (units=="nm")
 	{
+		xlabel="Wavelength, nm";
 		fout << "# VET,nm\tepsilon(M^-1 cm^-1)\n";
 		for (int i=0;i<spectrum.size();i++)
 		{
@@ -201,8 +205,8 @@ int main(int argc,char** argv)
             std::cerr << "Warning: cannot write gnuplot script.\n";
             return 0;
         }
-	gp << "set title \"Broadened Spectrum (Gaussian FWHM = 0.15 eV)\"\n"
-	   << "set xlabel \"Wavenumber (cm^{-1})\"\n"
+	gp << "set title \"Broadened Spectrum (Gaussian FWHM =" << fwhm <<" eV)\"\n"
+	   << "set xlabel "<< "\""<< xlabel << "\"\n"
 	   << "set ylabel \"Extinction Coefficient epsilon (M^{-1} cm^{-1})\"\n"
 	   << "set grid\n"
 	   << "plot '" << output << "' using 1:2 with lines title 'epsilon(nu)'\n"
