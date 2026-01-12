@@ -174,6 +174,7 @@ int main(int argc,char** argv)
 		{
 			fout << std::scientific << spectrum[i][0] << "\t" << spectrum[i][1] << std::endl;
 		}
+		fout.close();
 	}
 	else if (units=="cm")
 	{
@@ -182,6 +183,7 @@ int main(int argc,char** argv)
 		{
 			fout << std::scientific << spectrum[i][0]*8066 << "\t" << spectrum[i][1] << std::endl;
 		}
+		fout.close();
 	}
 	else if (units=="nm")
 	{
@@ -190,6 +192,7 @@ int main(int argc,char** argv)
 		{
 			fout << std::scientific << 1240/spectrum[i][0] << "\t" << spectrum[i][1] << std::endl;
 		}
+		fout.close();
 	}
 	if (plot) {
 		const std::string gp_path = "plot_spectrum.gp";
