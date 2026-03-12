@@ -107,7 +107,7 @@ int main(int argc,char** argv)
 	float mine = 0.01;
 	float maxe = 5.00;
 	bool plot = false;
-
+// End Defauts
 	for (int i = 1; i < argc; i++)
 	{
 		std::string str = argv[i];
